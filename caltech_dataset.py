@@ -2,6 +2,8 @@ from torchvision.datasets import VisionDataset
 
 from PIL import Image
 
+from sklearn.model_selection import train_test_split
+
 import os
 import os.path
 import sys
@@ -25,18 +27,20 @@ class Caltech(VisionDataset):
         self.split = split # This defines the split you are going to use
                            # (split files are called 'train.txt' and 'test.txt')
 
-        self.data = []    # it contains tuples (image, numeric_label)
+        self.images = []
+        self.labels = []
 
-        with open(f"{split}.txt", 'r') as paths:
+        with open(f"./Caltech101/{split}.txt", 'r') as paths:
             for line in paths.readlines():
                 class_name = line[:line.find('/')]
                 if (class_name not in Caltech.excluded) and (class_name not in Caltech.classes):
                     Caltech.classes[class_name] = Caltech.class_num
                     Caltech.class_num += 1
                 numeric_label = Caltech.classes[class_name]
-                img = pil_loader(line[:-1])
+                self.labels.append(numeric_label)
 
-                self.data.append( (img, numeric_label) )
+                img = pil_loader(f"{root}/{line[:-1]}")
+                self.images.append(img)
 
         '''
         - Here you should implement the logic for reading the splits files and accessing elements
@@ -57,7 +61,7 @@ class Caltech(VisionDataset):
             tuple: (sample, target) where target is class_index of the target class.
         '''
 
-        image, label = self.data[index] # Provide a way to access image and label via index
+        image, label = self.images[index], self.labels[index] # Provide a way to access image and label via index
                            # Image should be a PIL Image
                            # label can be int
 
@@ -72,5 +76,11 @@ class Caltech(VisionDataset):
         The __len__ method returns the length of the dataset
         It is mandatory, as this is used by several other components
         '''
-        length = len(self.data) # Provide a way to get the length (number of elements) of the dataset
+        length = len(self.labels) # Provide a way to get the length (number of elements) of the dataset
         return length
+
+
+    def stratified_split_indexes(train_size=0.5):
+        indexes = range(len(labels))
+        train_i, val_i = train_test_split(train_size=train_size, random_state=42, stratify=labels)
+        return train_i, val_i
