@@ -33,14 +33,15 @@ class Caltech(VisionDataset):
         with open(f"./Caltech101/{split}.txt", 'r') as paths:
             for line in paths.readlines():
                 class_name = line[:line.find('/')]
-                if (class_name not in Caltech.excluded) and (class_name not in Caltech.classes):
-                    Caltech.classes[class_name] = Caltech.class_num
-                    Caltech.class_num += 1
-                numeric_label = Caltech.classes[class_name]
-                self.labels.append(numeric_label)
+                if (class_name not in Caltech.excluded):
+                    if (class_name not in Caltech.classes):
+                        Caltech.classes[class_name] = Caltech.class_num
+                        Caltech.class_num += 1
+                    numeric_label = Caltech.classes[class_name]
+                    self.labels.append(numeric_label)
 
-                img = pil_loader(f"{root}/{line[:-1]}")
-                self.images.append(img)
+                    img = pil_loader(f"{root}/{line[:-1]}")
+                    self.images.append(img)
 
         '''
         - Here you should implement the logic for reading the splits files and accessing elements
@@ -80,7 +81,7 @@ class Caltech(VisionDataset):
         return length
 
 
-    def stratified_split_indexes(train_size=0.5):
-        indexes = range(len(labels))
-        train_i, val_i = train_test_split(train_size=train_size, random_state=42, stratify=labels)
+    def stratified_split_indexes(self, train_size=0.5):
+        indexes = [i for i in range(len(self.labels))]
+        train_i, val_i = train_test_split(indexes, train_size=train_size, random_state=42, stratify=self.labels)
         return train_i, val_i
